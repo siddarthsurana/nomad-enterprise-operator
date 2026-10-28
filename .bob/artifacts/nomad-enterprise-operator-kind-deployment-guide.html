@@ -1,0 +1,462 @@
+
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Nomad Enterprise Operator: Kind Deployment Guide</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, "Segoe UI", system-ui, sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #1f2328;
+    background: #ffffff;
+    padding: 40px 20px 60px;
+  }
+  .page { max-width: 760px; margin: 0 auto; }
+
+  h1 { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+  h2 { font-size: 16px; font-weight: 700; margin: 36px 0 10px; color: #1f2328; }
+  h3 { font-size: 13px; font-weight: 700; margin: 16px 0 6px; color: #3b82d4; text-transform: uppercase; letter-spacing: 0.04em; }
+  p  { margin-bottom: 10px; color: #1f2328; }
+
+  .subtitle {
+    font-size: 13px;
+    color: #57606a;
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .docs-banner {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: #f0f6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 6px;
+    padding: 12px 16px;
+    margin-bottom: 28px;
+    font-size: 13px;
+  }
+  .docs-banner-icon { font-size: 18px; flex-shrink: 0; }
+  .docs-banner a { color: #3b82d4; font-weight: 600; }
+
+  .concept-box {
+    background: #f7f8fa;
+    border: 1px solid #e5e7eb;
+    border-left: 3px solid #3b82d4;
+    border-radius: 4px;
+    padding: 16px 18px;
+    margin-bottom: 28px;
+  }
+  .concept-box p:last-child { margin-bottom: 0; }
+
+  .step {
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    margin-bottom: 20px;
+    overflow: hidden;
+  }
+  .step-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: #f7f8fa;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  .step-number {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: #3b82d4;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .step-title { font-weight: 700; font-size: 14px; }
+  .step-body { padding: 14px 16px; }
+  .step-body p:last-child { margin-bottom: 0; }
+
+  code, pre {
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    font-size: 12.5px;
+  }
+  pre {
+    background: #f7f8fa;
+    border: 1px solid #e5e7eb;
+    border-radius: 4px;
+    padding: 10px 14px;
+    margin: 10px 0;
+    overflow-x: auto;
+    white-space: pre;
+  }
+  code { background: #f0f1f3; padding: 1px 5px; border-radius: 3px; }
+
+  .note {
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    border-radius: 4px;
+    padding: 8px 12px;
+    font-size: 12.5px;
+    color: #78350f;
+    margin-top: 10px;
+  }
+  .note strong { color: #92400e; }
+
+  .what-happened {
+    margin: 10px 0;
+    padding: 10px 14px;
+    background: #f7f8fa;
+    border: 1px solid #e5e7eb;
+    border-radius: 4px;
+  }
+  .what-happened ul { padding-left: 18px; }
+  .what-happened li { margin-bottom: 4px; font-size: 13px; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0;
+    font-size: 13px;
+  }
+  th {
+    background: #f7f8fa;
+    border: 1px solid #e5e7eb;
+    padding: 8px 12px;
+    text-align: left;
+    font-weight: 700;
+    color: #57606a;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+  td {
+    border: 1px solid #e5e7eb;
+    padding: 8px 12px;
+    vertical-align: top;
+  }
+  tr:nth-child(even) td { background: #fafafa; }
+
+  .status-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 10px;
+    margin: 12px 0;
+  }
+  .status-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    background: #f7f8fa;
+    border: 1px solid #e5e7eb;
+    border-radius: 4px;
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+  .check { color: #16a34a; font-weight: 700; flex-shrink: 0; }
+
+  .phase-flow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin: 10px 0;
+    font-size: 13px;
+  }
+  .phase {
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-weight: 600;
+    background: #f7f8fa;
+    border: 1px solid #e5e7eb;
+    color: #57606a;
+  }
+  .phase.final {
+    background: #dcfce7;
+    border-color: #86efac;
+    color: #15803d;
+  }
+  .arrow { color: #57606a; }
+
+  .secrets-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 6px;
+    margin: 10px 0;
+  }
+  .secret-tag {
+    background: #f7f8fa;
+    border: 1px solid #e5e7eb;
+    border-radius: 4px;
+    padding: 5px 10px;
+    font-size: 12px;
+    font-family: "SFMono-Regular", Consolas, monospace;
+    color: #57606a;
+  }
+
+  .next-steps { list-style: none; padding: 0; margin: 10px 0; }
+  .next-steps li { padding: 5px 0; font-size: 13px; border-bottom: 1px solid #f0f1f3; }
+  .next-steps li:last-child { border-bottom: none; }
+  .next-steps li::before { content: "→ "; color: #3b82d4; font-weight: 700; }
+
+  .ref-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 10px;
+    margin: 12px 0;
+  }
+  .ref-card {
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    padding: 12px 14px;
+    font-size: 13px;
+  }
+  .ref-card-title { font-weight: 700; margin-bottom: 4px; font-size: 13px; }
+  .ref-card-desc { color: #57606a; font-size: 12px; margin-bottom: 6px; }
+  .ref-card a { color: #3b82d4; font-size: 12px; word-break: break-all; }
+
+  .footer {
+    margin-top: 48px;
+    padding-top: 16px;
+    border-top: 1px solid #e5e7eb;
+    text-align: center;
+    font-size: 12px;
+    color: #57606a;
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <h1>Nomad Enterprise Operator</h1>
+  <p class="subtitle">Complete implementation guide — deploying on a local <code>kind</code> cluster, step by step with the reasoning behind each decision.</p>
+
+  <div class="docs-banner">
+    <div class="docs-banner-icon">📖</div>
+    <div>Full official documentation — including CRD reference, TLS guides, keyrings, monitoring, runbooks, and the threat model — is at <a href="https://benemon.github.io/nomad-enterprise-operator/">benemon.github.io/nomad-enterprise-operator</a>.</div>
+  </div>
+
+  
+  <h2>What Is a Kubernetes Operator?</h2>
+  <div class="concept-box">
+    <p>An <strong>operator</strong> is a Kubernetes controller — a program that runs inside your cluster and automates complex, domain-specific management tasks. Instead of a human administrator manually creating resources and watching for failures, the operator does it continuously and automatically.</p>
+    <p>The Nomad Enterprise Operator watches for <code>NomadCluster</code> resources you create and then handles everything automatically: provisioning pods, generating TLS certificates, bootstrapping ACLs, and self-healing on failure. All the expertise of running Nomad is encoded in the operator itself.</p>
+  </div>
+
+  <h2>Deployment Steps</h2>
+
+  
+  <div class="step">
+    <div class="step-header">
+      <div class="step-number">1</div>
+      <div class="step-title">Create a local Kubernetes cluster with <code>kind</code></div>
+    </div>
+    <div class="step-body">
+      <pre>kind create cluster --name nomad-operator --image kindest/node:v1.31.0 --wait 120s</pre>
+      <h3>Why</h3>
+      <p>Kubernetes requires a cluster to exist before anything can run in it. <code>kind</code> (Kubernetes in Docker) spins up a full Kubernetes control plane inside a Docker container — lightweight, disposable, and perfect for local development. We pinned <code>v1.31.0</code> for reproducibility. The <code>--wait</code> flag blocks until the control plane is ready before proceeding.</p>
+      <div class="note"><strong>Side effect:</strong> <code>kubectl</code> context is automatically switched to <code>kind-nomad-operator</code>.</div>
+    </div>
+  </div>
+
+  
+  <div class="step">
+    <div class="step-header">
+      <div class="step-number">2</div>
+      <div class="step-title">Build the operator Docker image locally</div>
+    </div>
+    <div class="step-body">
+      <pre>make docker-build IMG=example.com/nomad-enterprise-operator:v0.0.1</pre>
+      <h3>Why</h3>
+      <p>The operator is Go source code in this repository. It must be compiled into a Docker image before Kubernetes can run it. We built it locally rather than pulling the upstream image from Quay because we want to test the local source. The <code>example.com/</code> prefix is a kubebuilder convention — a deliberately fake registry hostname that signals "this image is local-only and should never be pushed."</p>
+      <div class="note"><strong>Side effect:</strong> <code>config/manager/kustomization.yaml</code> is rewritten by <code>kustomize edit set image</code> during <code>make deploy</code> to record the image name. This is intentional — it is how kustomize's image-override mechanism works and is expected to be a dirty file after a local deploy.</div>
+    </div>
+  </div>
+
+  
+  <div class="step">
+    <div class="step-header">
+      <div class="step-number">3</div>
+      <div class="step-title">Load the image into the <code>kind</code> cluster</div>
+    </div>
+    <div class="step-body">
+      <pre>kind load docker-image example.com/nomad-enterprise-operator:v0.0.1 --name nomad-operator</pre>
+      <h3>Why</h3>
+      <p>After building, the image exists only in your local Docker daemon. The <code>kind</code> cluster runs its own isolated container runtime inside Docker — it cannot see your local daemon's images. This command copies the image directly into the kind node so Kubernetes can use it without any network pull. Without this step, the operator pod would fail with <code>ImagePullBackOff</code>.</p>
+    </div>
+  </div>
+
+  
+  <div class="step">
+    <div class="step-header">
+      <div class="step-number">4</div>
+      <div class="step-title">Install cert-manager</div>
+    </div>
+    <div class="step-body">
+      <pre>kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.16.3/cert-manager.yaml</pre>
+      <h3>Why</h3>
+      <p>cert-manager is a commonly expected cluster dependency and is installed by the project's e2e test suite. It is not strictly required by this operator — the Nomad Enterprise Operator generates its own CA and TLS certificates internally without invoking cert-manager. We installed it because it is a standard cluster component and the operator's test infrastructure expects it to be present.</p>
+      <div class="note"><strong>Note:</strong> cert-manager support in the operator's kustomize config (<code>config/default/kustomization.yaml</code>) is explicitly commented out. The operator handles certificate lifecycle itself.</div>
+    </div>
+  </div>
+
+  
+  <div class="step">
+    <div class="step-header">
+      <div class="step-number">5</div>
+      <div class="step-title">Deploy the operator controller manager</div>
+    </div>
+    <div class="step-body">
+      <pre>make deploy IMG=example.com/nomad-enterprise-operator:v0.0.1</pre>
+      <h3>Why</h3>
+      <p>This is the step that actually installs the operator into the cluster. Under the hood it runs <code>kustomize build config/default | kubectl apply</code>, which creates:</p>
+      <div class="what-happened">
+        <ul>
+          <li>The <strong>3 CRDs</strong> — <code>NomadCluster</code>, <code>NomadSnapshot</code>, <code>NomadAutoscaler</code></li>
+          <li>The <strong>controller manager Deployment</strong> — the operator pod itself</li>
+          <li><strong>RBAC</strong> — ClusterRoles and bindings so the operator can create/update/delete the resources it manages</li>
+          <li>A <strong>metrics Service</strong> for Prometheus scraping</li>
+          <li>The <strong><code>nomad-enterprise-operator-system</code> namespace</strong></li>
+        </ul>
+      </div>
+      <p>Once the pod is running, the operator is idle — watching for <code>NomadCluster</code> resources but not yet doing anything, because none exist yet.</p>
+    </div>
+  </div>
+
+  
+  <div class="step">
+    <div class="step-header">
+      <div class="step-number">6</div>
+      <div class="step-title">Create the namespace and license secret</div>
+    </div>
+    <div class="step-body">
+      <pre>kubectl create namespace nomad
+kubectl create secret generic nomad-license \
+  --from-literal=license="&lt;license-string&gt;" \
+  --namespace nomad</pre>
+      <h3>Why</h3>
+      <p>The operator only creates its own system namespace. The namespace where your <code>NomadCluster</code> lives must be created manually first. The license secret must exist before the CR is applied because the operator reads it immediately during reconciliation — a missing secret causes the reconcile to fail. The Nomad Enterprise license is the only required field for a <code>NomadCluster</code>; everything else has an operator-managed default.</p>
+    </div>
+  </div>
+
+  
+  <div class="step">
+    <div class="step-header">
+      <div class="step-number">7</div>
+      <div class="step-title">Apply the NomadCluster custom resource</div>
+    </div>
+    <div class="step-body">
+      <pre>kubectl apply -f config/samples/minimal/nomadcluster.yaml --namespace nomad</pre>
+      <h3>Why</h3>
+      <p>This is the signal to the operator to begin work. A <code>NomadCluster</code> CR is the declaration of intent — "I want a Nomad cluster with these settings." The operator detects it via a watch and immediately begins reconciling. The minimal sample uses <code>type: NodePort</code> for the external service, which is correct for kind — the default <code>LoadBalancer</code> type would wait indefinitely for an external IP that kind cannot provide without MetalLB.</p>
+    </div>
+  </div>
+
+  
+  <div class="step">
+    <div class="step-header">
+      <div class="step-number">8</div>
+      <div class="step-title">Operator reconciles — what happened automatically</div>
+    </div>
+    <div class="step-body">
+      <h3>Phase progression</h3>
+      <div class="phase-flow">
+        <span class="phase">Creating</span>
+        <span class="arrow">→</span>
+        <span class="phase">ACLBootstrap</span>
+        <span class="arrow">→</span>
+        <span class="phase final">Running (3/3)</span>
+      </div>
+      <h3>Resources created by the operator</h3>
+      <div class="what-happened">
+        <ul>
+          <li><strong>StatefulSet</strong> with 3 replicas (<code>nomad-0</code>, <code>nomad-1</code>, <code>nomad-2</code>)</li>
+          <li><strong>3 Services</strong> — headless (service discovery), internal (ClusterIP), external (NodePort)</li>
+          <li><strong>PodDisruptionBudget</strong> — max 1 unavailable, protecting quorum</li>
+          <li><strong>Role + RoleBinding</strong> for the Nomad pods</li>
+        </ul>
+      </div>
+      <h3>Secrets created by the operator</h3>
+      <div class="secrets-grid">
+        <div class="secret-tag">nomad-gossip</div>
+        <div class="secret-tag">nomad-ca</div>
+        <div class="secret-tag">nomad-tls</div>
+        <div class="secret-tag">nomad-config</div>
+        <div class="secret-tag">nomad-acl-bootstrap</div>
+        <div class="secret-tag">nomad-operator-management</div>
+        <div class="secret-tag">nomad-operator-status</div>
+      </div>
+      <div class="note"><strong>TLS note:</strong> The operator generated the CA and server certificates directly — cert-manager was not involved in this certificate chain.</div>
+    </div>
+  </div>
+
+  
+  <h2>Final Verification</h2>
+  <div class="status-grid">
+    <div class="status-item"><span class="check">✓</span><span><strong>kind cluster</strong><br />Kubernetes v1.31.0</span></div>
+    <div class="status-item"><span class="check">✓</span><span><strong>cert-manager</strong><br />v1.16.3 available</span></div>
+    <div class="status-item"><span class="check">✓</span><span><strong>Operator</strong><br />Controller manager running</span></div>
+    <div class="status-item"><span class="check">✓</span><span><strong>NomadCluster</strong><br />Phase: Running, 3/3 ready</span></div>
+  </div>
+
+  
+  <h2>Why Operators Matter</h2>
+  <table>
+    <thead>
+      <tr><th>Manual Approach</th><th>Operator Approach</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Create each pod by hand</td><td>Operator provisions all nodes on demand</td></tr>
+      <tr><td>Generate and rotate certificates manually</td><td>Operator manages the full certificate lifecycle</td></tr>
+      <tr><td>Run ACL bootstrap commands after cluster starts</td><td>Operator detects readiness and bootstraps automatically</td></tr>
+      <tr><td>Recreate pods if they crash</td><td>Operator detects and repairs drift continuously</td></tr>
+      <tr><td>Knowledge lives in runbooks and humans</td><td>Knowledge is encoded in the operator itself</td></tr>
+    </tbody>
+  </table>
+
+  
+  <h2>Next Steps</h2>
+  <ul class="next-steps">
+    <li>Retrieve the bootstrap ACL token: <code>kubectl get secret nomad-acl-bootstrap -n nomad -o jsonpath='{.data.token}' | base64 -d</code></li>
+    <li>Access the Nomad UI via the NodePort on the kind node IP (port shown by <code>kubectl get svc nomad-external -n nomad</code>)</li>
+    <li>Deploy a <code>NomadSnapshot</code> CR to enable scheduled Raft snapshots</li>
+    <li>Deploy a <code>NomadAutoscaler</code> CR to enable the Nomad Autoscaler agent</li>
+    <li>Tear down when done: <code>kind delete cluster --name nomad-operator</code></li>
+  </ul>
+
+  
+  <h2>Further Reading</h2>
+  <div class="ref-grid">
+    <div class="ref-card">
+      <div class="ref-card-title">Official Documentation</div>
+      <div class="ref-card-desc">CRD reference, TLS guides, keyrings, workload identity, monitoring, scaling, and runbooks.</div>
+      <a href="https://benemon.github.io/nomad-enterprise-operator/">benemon.github.io/nomad-enterprise-operator</a>
+    </div>
+    <div class="ref-card">
+      <div class="ref-card-title">Architectural Boundaries</div>
+      <div class="ref-card-desc">What the operator manages and what is explicitly out of scope (Nomad clients, job scheduling).</div>
+      <a href="https://benemon.github.io/nomad-enterprise-operator/#architectural-boundaries">…/#architectural-boundaries</a>
+    </div>
+    <div class="ref-card">
+      <div class="ref-card-title">Threat Model</div>
+      <div class="ref-card-desc">Security material covering secret custody, RBAC surface, and egress paths.</div>
+      <a href="https://benemon.github.io/nomad-enterprise-operator/threat-model/">…/threat-model/</a>
+    </div>
+    <div class="ref-card">
+      <div class="ref-card-title">NomadCluster CRD Reference</div>
+      <div class="ref-card-desc">All spec fields, defaults, and validation rules for the NomadCluster resource.</div>
+      <a href="https://benemon.github.io/nomad-enterprise-operator/crd-reference/nomadcluster/">…/crd-reference/nomadcluster/</a>
+    </div>
+  </div>
+
+  <div class="footer">Made with IBM Bob</div>
+</div>
+</body>
+</html>
